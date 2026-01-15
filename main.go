@@ -1,23 +1,17 @@
 package main
 
 import (
+	"time"
+	"pokedex/internal/pokeapi"
+
 )
 
-var 	existingCommand = map[string]cliCommand{
-    		"exit": {
-        		name:        "exit",
-        		description: "Exit the Pokedex",
-        		callback:    commandExit,
-    		},
-    		"help": {
-	    	name: "help",
-	    	description: "Exit the Pokedex",
-	    	callback:    commandHelp,
-    		},
-	}	
-func main(){
-	REPLLoop()
-	return
+func main() {
+	pokeClient := pokeapi.NewClient(5*time.Second, time.Minute*5)
+	cfg := &config{
+		pokeapiClient: pokeClient,
+		caught: make(map[string]pokeapi.Pokemon),
+	}
+
+	startRepl(cfg)
 }
-
-

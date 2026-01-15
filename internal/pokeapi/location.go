@@ -1,0 +1,52 @@
+package pokeapi
+import (
+	"encoding/json"
+	"io"
+	"net/http"
+	"errors"
+)
+
+// GetLocation
+
+func (c *Client) GetLocation(name string) (Location, error) {
+	url:= baseURL + "/location-area/" + name
+	if val, ok := c.cache.Get(url); ok {
+		location := Location{}
+		err := json.Unmarshal(val, &location)
+		if err != nil {
+			return location, err
+		}
+
+		return location, nil
+	}
+
+	req, err:= http.NewRequest("GET", url, nil)
+	if err != nil {
+		return Location{}, err
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return Location{}, err
+	}
+	if resp.StatusCode == 404 {
+		return Location{}, errors.New("Location Area not Found.")
+
+	}
+	defer resp.Body.Close()
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil{
+		return Location{}, err
+	}
+
+	location := Location{}
+	err = json.Unmarshal(data, &location)
+	if err != nil{
+		return Location{}, err
+	}
+
+	c.cache.Add(url, data)
+	return location, nil
+
+}
